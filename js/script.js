@@ -66,17 +66,40 @@ $(document).ready(function () {
 
     apigClient.devicesGet(params, {}, additionalParams)
         .then(function (result) {
+            scene = new THREE.Scene();
+            init_map();
             init(JSON.parse(result.data));
             animate();
         });
 
+    function init_map() {
+        
+        var texture = new THREE.ImageUtils.loadTexture('images/Japan.png');
+        var material = new THREE.MeshBasicMaterial({ map: texture });
+
+        var geometry = new THREE.PlaneGeometry(300, 300);
+        var object = new THREE.Mesh( geometry, material );
+        object.position.x = 0;
+        object.position.y = 0;
+        object.position.z = 0;
+        scene.add(object);
+        objects.push(object);
+        
+        var target = new THREE.Object3D();
+        target.position.x = 0;
+        target.position.y = 0;
+
+        targets.table.push(target);
+    }
+
     function init(table) {
 
         camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.z = 1000;
+        camera.position.z = 4000;
 
-        scene = new THREE.Scene();
 
+        
+        
         // table
 
         for (var i = 0; i < table.length; i++) {
@@ -108,8 +131,6 @@ $(document).ready(function () {
             scene.add(object);
 
             objects.push(object);
-
-            //
 
             var object = new THREE.Object3D();
             object.position.x = (table[i].pos_x - 1000);
@@ -195,6 +216,7 @@ $(document).ready(function () {
         controls.rotateSpeed = 0.5;
         controls.minDistance = 500;
         controls.maxDistance = 6000;
+        controls.noRotate = true;
         controls.addEventListener('change', render);
 
         var button = document.getElementById('table');
