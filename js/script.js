@@ -30,11 +30,18 @@ var additionalParams = {
     }
 };
 
-var camera, scene, renderer;
+var camera, scene, scene_map, renderer, renderer_map;
 var controls;
 
 var objects = [];
 var targets = { table: []/* , sphere: [], helix: [], grid: []  */ };
+camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+camera.position.z = 4000;
+
+scene = new THREE.Scene();
+scene_map = new THREE.Scene();
+renderer = new THREE.CSS3DRenderer();
+renderer_map = new THREE.WebGLRenderer({ alpha:true });
 
 $(document).ready(function () {
     $("#getData").click(function () {
@@ -66,40 +73,32 @@ $(document).ready(function () {
 
     apigClient.devicesGet(params, {}, additionalParams)
         .then(function (result) {
-            scene = new THREE.Scene();
             init_map();
             init(JSON.parse(result.data));
             animate();
         });
 
     function init_map() {
-        
-        var texture = new THREE.ImageUtils.loadTexture('images/Japan.png');
+        var texture = new THREE.TextureLoader().load('images/Japan.png', function(texture) {renderer_map.render(scene_map, camera)});
         var material = new THREE.MeshBasicMaterial({ map: texture });
 
-        var geometry = new THREE.PlaneGeometry(300, 300);
+        var geometry = new THREE.PlaneGeometry(2500, 2500);
         var object = new THREE.Mesh( geometry, material );
-        object.position.x = 0;
-        object.position.y = 0;
-        object.position.z = 0;
-        scene.add(object);
-        objects.push(object);
-        
-        var target = new THREE.Object3D();
-        target.position.x = 0;
-        target.position.y = 0;
 
-        targets.table.push(target);
+        scene_map.add(object);
+        scene_map.backgroundColor = new THREE.Color( 0xFFFFFF );
+        
+        renderer_map.setSize(window.innerWidth, window.innerHeight);
+        renderer_map.domElement.style.position = 'absolute';
+        renderer_map.setClearColor( 0xFFFFFF, 1 );
+        renderer_map.domElement.style.zIndex = "0"; 
+        document.getElementById('container').appendChild(renderer_map.domElement);
+        
+        renderer_map.render(scene_map, camera);
+        
     }
 
     function init(table) {
-
-        camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.z = 4000;
-
-
-        
-        
         // table
 
         for (var i = 0; i < table.length; i++) {
@@ -108,6 +107,7 @@ $(document).ready(function () {
             element.className = 'element';
             element.id = table[i].id;
             element.style.backgroundColor = 'rgba(0,127,127,' + (Math.random() * 0.5 + 0.25) + ')';
+
 
             // var number = document.createElement( 'div' );
             // number.className = 'number';
@@ -123,7 +123,8 @@ $(document).ready(function () {
             details.className = 'details';
             details.innerHTML = table[i].group;
             element.appendChild(details);
-
+            // par_element.appendChild(element);
+            
             var object = new THREE.CSS3DObject(element);
             object.position.x = Math.random() * 4000 - 2000;
             object.position.y = Math.random() * 4000 - 2000;
@@ -138,6 +139,7 @@ $(document).ready(function () {
 
             targets.table.push(object);
         }
+
 
         // sphere
 
@@ -205,7 +207,6 @@ $(document).ready(function () {
 
         //
 
-        renderer = new THREE.CSS3DRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.domElement.style.position = 'absolute';
         document.getElementById('container').appendChild(renderer.domElement);
@@ -215,7 +216,7 @@ $(document).ready(function () {
         controls = new THREE.TrackballControls(camera, renderer.domElement);
         controls.rotateSpeed = 0.5;
         controls.minDistance = 500;
-        controls.maxDistance = 6000;
+        controls.maxDistance = 10000;
         controls.noRotate = true;
         controls.addEventListener('change', render);
 
@@ -250,9 +251,9 @@ $(document).ready(function () {
         transform(targets.table, 2000);
 
         //
-
         window.addEventListener('resize', onWindowResize, false);
-
+        renderer.render(scene, camera);
+        
     }
 
     function transform(targets, duration) {
@@ -289,6 +290,7 @@ $(document).ready(function () {
         camera.updateProjectionMatrix();
 
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer_map.setSize(window.innerWidth, window.innerHeight);
 
         render();
 
@@ -307,7 +309,10 @@ $(document).ready(function () {
     function render() {
 
         renderer.render(scene, camera);
+        renderer_map.render(scene_map, camera);
 
     }
 
+    
 });
+
