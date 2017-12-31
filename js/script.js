@@ -36,7 +36,7 @@ var controls;
 var objects = [];
 var targets = { table: []/* , sphere: [], helix: [], grid: []  */ };
 camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-camera.position.z = 4000;
+camera.position.z = 8000;
 
 scene = new THREE.Scene();
 scene_map = new THREE.Scene();
