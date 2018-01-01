@@ -11,11 +11,11 @@ var body = {
     "label_id": "id",
     "label_range": "timestamp",
     "id": [
-        "H"
+        "A-001"
     ],
     "aggregator": "latest",
-    "time_from": "2017-07-23T16:00:00.000",
-    "time_to": "2017-07-23T16:06:00.000",
+    "time_from": "2018-01-01T00:00:00",
+    "time_to": "2018-01-01T00:04:00",
     "params": {
         "range": "timestamp"
     }
@@ -53,7 +53,8 @@ $(document).ready(function () {
                 for (var index = 0; index < resultJson.length; index++) {
                     var resultObj = new Object();
                     resultObj.id = resultJson[index].id;
-                    resultObj.score = resultJson[index].score
+                    resultObj.score = resultJson[index].score;
+                    resultObj.value = resultJson[index].value;
                     resultObjArray[index] = resultObj;
                 }
 
@@ -62,6 +63,10 @@ $(document).ready(function () {
                     if (resultObj.score != 0) {
                         $('#' + resultObj.id).css('background-color', 'rgba(255,127,127,' + (Math.random() * 0.5 + 0.25) + ')')
                     }
+                }
+
+                for (var resultObj of resultObjArray) {
+                    $('#' + resultObj.id + '_symbol')[0].textContent = resultObj.value;
                 }
 
             }).catch(function (result) {
@@ -106,24 +111,24 @@ $(document).ready(function () {
             var element = document.createElement('div');
             element.className = 'element';
             element.id = table[i].id;
-            element.style.backgroundColor = 'rgba(0,127,127,' + (Math.random() * 0.5 + 0.25) + ')';
+            element.style.backgroundColor = 'rgba(0,127,127,0.75)';
 
 
-            // var number = document.createElement( 'div' );
-            // number.className = 'number';
-            // number.textContent = (i/5) + 1;
-            // element.appendChild( number );
+            var idElement = document.createElement( 'div' );
+            idElement.className = 'number';
+            idElement.textContent = table[i].id;
+            element.appendChild(idElement);
 
             var symbol = document.createElement('div');
             symbol.className = 'symbol';
-            symbol.textContent = table[i].id;
+            symbol.id = table[i].id + '_symbol';
+            symbol.textContent = 0; // initial value
             element.appendChild(symbol);
 
-            var details = document.createElement('div');
-            details.className = 'details';
-            details.innerHTML = table[i].group;
-            element.appendChild(details);
-            // par_element.appendChild(element);
+            // var details = document.createElement('div');
+            // details.className = 'details';
+            // details.innerHTML = table[i].group;
+            // element.appendChild(details);
             
             var object = new THREE.CSS3DObject(element);
             object.position.x = Math.random() * 4000 - 2000;
