@@ -10,12 +10,10 @@ var body = {
 
     "label_id": "id",
     "label_range": "timestamp",
-    "id": [
-        "A-001"
-    ],
+    "id": [],
     "aggregator": "latest",
-    "time_from": "2018-01-01T00:00:00",
-    "time_to": "2018-01-01T00:04:00",
+    "time_from": "2018-01-02T00:00:00",
+    "time_to": "2018-01-03T00:04:00",
     "params": {
         "range": "timestamp"
     }
@@ -46,30 +44,24 @@ renderer_map = new THREE.WebGLRenderer({ alpha:true });
 $(document).ready(function () {
     $("#getData").click(function () {
         apigClient.rootPost(params, body, additionalParams)
-            .then(function (result) {
-                var resultObjArray = new Array();
-                // Add success callback code here.
-                var resultJson = JSON.parse(result.data);
-                for (var index = 0; index < resultJson.length; index++) {
-                    var resultObj = new Object();
-                    resultObj.id = resultJson[index].id;
-                    resultObj.score = resultJson[index].score;
-                    resultObj.value = resultJson[index].value;
-                    resultObjArray[index] = resultObj;
-                }
+            .then(applyData)
+            .catch(function (result) {
+                // Add error callback code here.
+                alert("Failed");
+                alert(JSON.stringify(result));
+            });
+    });
 
-                for (var index = 0; index < resultObjArray.length; index++) {
-                    var resultObj = resultObjArray[index];
-                    if (resultObj.score != 0) {
-                        $('#' + resultObj.id).css('background-color', 'rgba(255,127,127,' + (Math.random() * 0.5 + 0.25) + ')')
-                    }
-                }
+    $("#get1minData").click(function () {
+        var now = new Date();
+        var before1min = new Date(now);
+        before1min.setMinutes(before1min.getMinutes() - 1);
 
-                for (var resultObj of resultObjArray) {
-                    $('#' + resultObj.id + '_symbol')[0].textContent = resultObj.value;
-                }
-
-            }).catch(function (result) {
+        body.time_from = before1min.toISOString();
+        body.time_to = now.toISOString();
+        apigClient.rootPost(params, body, additionalParams)
+            .then(applyData)
+            .catch(function (result) {
                 // Add error callback code here.
                 alert("Failed");
                 alert(JSON.stringify(result));
@@ -78,12 +70,37 @@ $(document).ready(function () {
 
     apigClient.devicesGet(params, {}, additionalParams)
         .then(function (result) {
-            init_map();
+            initMap();
             init(JSON.parse(result.data));
             animate();
         });
 
-    function init_map() {
+    var applyData = function(result) {
+        var resultObjArray = new Array();
+        // Add success callback code here.
+        var resultJson = JSON.parse(result.data);
+        for (var index = 0; index < resultJson.length; index++) {
+            var resultObj = new Object();
+            resultObj.id = resultJson[index].id;
+            resultObj.score = resultJson[index].score;
+            resultObj.value = resultJson[index].value;
+            resultObjArray[index] = resultObj;
+        }
+
+        for (var index = 0; index < resultObjArray.length; index++) {
+            var resultObj = resultObjArray[index];
+            if (resultObj.score != 0) {
+                $('#' + resultObj.id).css('background-color', 'rgba(255,127,127,' + (Math.random() * 0.5 + 0.25) + ')')
+            }
+        }
+
+        for (var resultObj of resultObjArray) {
+            $('#' + resultObj.id + '_symbol')[0].textContent = resultObj.value;
+        }
+
+    }
+
+    function initMap() {
         var texture = new THREE.TextureLoader().load('images/Japan.png', function(texture) {renderer_map.render(scene_map, camera)});
         var material = new THREE.MeshBasicMaterial({ map: texture });
 
@@ -104,9 +121,9 @@ $(document).ready(function () {
     }
 
     function init(table) {
-        // table
-
         for (var i = 0; i < table.length; i++) {
+            // body update
+            body.id.push(table[i].id);
 
             var element = document.createElement('div');
             element.className = 'element';
